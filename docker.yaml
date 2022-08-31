@@ -8,6 +8,12 @@ images:
 cpus: 4
 memory: "10GiB"
 
+# Hardcode an SSH port, this makes using SSH to access the VM much easier.
+ssh:
+  localPort: 2222
+  loadDotSSHPubKeys: true
+  forwardAgent: true
+
 mounts:
 - location: "~"
   writable: true
