@@ -8,6 +8,10 @@ images:
 cpus: 4
 memory: "10GiB"
 
+networks:
+  - lima: shared
+    macAddress: de:ad:be:ef:00:01
+
 mounts:
 - location: "~"
   writable: true
