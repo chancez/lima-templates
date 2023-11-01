@@ -1,0 +1,110 @@
+images:
+- location: "https://cloud-images.ubuntu.com/releases/22.04/release/ubuntu-22.04-server-cloudimg-amd64.img"
+  arch: "x86_64"
+- location: "https://cloud-images.ubuntu.com/releases/22.04/release/ubuntu-22.04-server-cloudimg-arm64.img"
+  arch: "aarch64"
+
+networks:
+  - lima: user-v2
+
+mounts:
+- location: "~"
+  writable: true
+- location: "/tmp/lima"
+  writable: true
+
+vmType: "qemu"
+video:
+  display: "default"
+audio:
+  device: "coreaudio"
+
+containerd:
+  system: false
+  user: false
+
+provision:
+- mode: system
+  script: |
+    #!/bin/bash
+    set -eux -o pipefail
+    if [[ -f /.desktop-setup ]]; then
+      exit 0
+    fi
+    echo -e "root\nroot" | passwd root
+    export DEBIAN_FRONTEND=noninteractive
+    export USER=$LIMA_CIDATA_USER
+
+    # install desktop + install linux-image-generic for audio support, and alsa-utils for testing audio/listing sound cards
+    apt install -y ubuntu-desktop-minimal linux-image-generic alsa-utils dbus-x11
+
+    cat > /etc/gdm3/custom.conf <<EOF
+    [daemon]
+    WaylandEnable=false
+    AutomaticLoginEnable=true
+    AutomaticLogin=${USER}
+    EOF
+
+    # Enable software cursor for xserver-xorg, since hardware cursor seems to be invisible on the qemu display
+    printf 'Section "Device"\nIdentifier "Card0"\nOption "SWcursor"\nEndSection' > /etc/X11/xorg.conf.d/swcursor.conf
+
+    sudo -u "${USER}" mkdir -p /home/${USER}.linux/.config
+    sudo -u "${USER}" echo "yes" >> /home/${USER}.linux/.config/gnome-initial-setup-done
+
+    sudo -u "${USER}" cat > /home/${USER}.linux/gnome-settings.ini <<EOF
+    [org/gnome/desktop/app-folders]
+    folder-children=['Utilities', 'YaST']
+
+    [org/gnome/desktop/app-folders/folders/Utilities]
+    apps=['gnome-abrt.desktop', 'gnome-system-log.desktop', 'nm-connection-editor.desktop', 'org.gnome.baobab.desktop', 'org.gnome.Connections.desktop', 'org.gnome.DejaDup.desktop', 'org.gnome.Dictionary.desktop', 'org.gnome.DiskUtility.desktop', 'org.gnome.eog.desktop', 'org.gnome.Evince.desktop', 'org.gnome.FileRoller.desktop', 'org.gnome.fonts.desktop', 'org.gnome.seahorse.Application.desktop', 'org.gnome.tweaks.desktop', 'org.gnome.Usage.desktop', 'vinagre.desktop']
+    categories=['X-GNOME-Utilities']
+    name='X-GNOME-Utilities.directory'
+    translate=true
+
+    [org/gnome/desktop/app-folders/folders/YaST]
+    categories=['X-SuSE-YaST']
+    name='suse-yast.directory'
+    translate=true
+
+    [org/gnome/desktop/input-sources]
+    current=uint32 0
+    sources=[('xkb', 'us')]
+    xkb-options=@as []
+
+    [org/gnome/desktop/privacy]
+    report-technical-problems=true
+
+    [org/gnome/evolution-data-server]
+    migrated=true
+    network-monitor-gio-name=''
+
+    [org/gnome/shell]
+    welcome-dialog-last-shown-version='42.9'
+
+    [org/gnome/system/location]
+    enabled=false
+    EOF
+
+    sudo -u ${USER} dbus-launch bash -c "dconf load / < /home/${USER}.linux/gnome-settings.ini"
+    echo -e "test\ntest" | passwd "${USER}"
+    touch /.desktop-setup
+
+    # reboot is required after installing linux-image-generic
+    # reboot
+
+- mode: system
+  script: |
+    #!/bin/bash
+    set -eux -o pipefail
+    systemctl set-default graphical.target
+    systemctl isolate graphical.target
+probes:
+- description: "Waiting for desktop environment to be running"
+  script: |
+    #!/bin/bash
+    set -eux -o pipefail
+    if ! timeout 30s bash -c "until systemctl is-active gdm; do sleep 5; done"; then
+      echo >&2 "Desktop is not running yet"
+      exit 1
+    fi
+  hint: See "/var/log/cloud-init-output.log". in the guest
