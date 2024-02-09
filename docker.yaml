@@ -75,6 +75,29 @@ provision:
     chmod +x ./kind
     mv ./kind /usr/local/bin/kind
 
+- mode: system
+  script: |
+    # cilium dev deps
+    if [[ -f /.cilium-setup ]]; then
+      exit 0
+    fi
+    apt-get update
+    apt-get install -y build-essential make libtinfo5 clang-11
+
+    ln -s /usr/bin/clang-11 /usr/bin/clang
+    ln -s /usr/bin/llc-11 /usr/bin/llc
+
+    cd /tmp
+    wget https://go.dev/dl/go1.21.4.linux-arm64.tar.gz
+    rm -rf /usr/local/go && tar -C /usr/local -xzf go1.21.4.linux-arm64.tar.gz
+
+    echo 'export PATH=$PATH:/usr/local/go/bin' >> /home/chancezibolski.linux/.bashrc
+
+    export PATH=$PATH:/usr/local/go/bin
+    go install github.com/mattn/goveralls@a36c7ef8f23b2952fa6e39663f52107dfc8ad69d
+    go install github.com/mfridman/tparse@28967170dce4f9f13de77ec857f7aed4c4294a5f
+
+    touch /.cilium-setup
 
 probes:
 - script: |
