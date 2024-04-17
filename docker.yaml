@@ -1,4 +1,11 @@
-# This example requires Lima v0.8.0 or later
+vmType: "vz"
+rosetta:
+  # Enable Rosetta for Linux.
+  enabled: true
+  # Register rosetta to /proc/sys/fs/binfmt_misc
+  # Will used by docker to run amd64 images via Rosetta
+  binfmt: true
+
 images:
 - location: "https://cloud-images.ubuntu.com/releases/22.04/release/ubuntu-22.04-server-cloudimg-amd64.img"
   arch: "x86_64"
@@ -13,6 +20,7 @@ networks:
   - lima: shared
     macAddress: de:ad:be:ef:00:01
 
+mountType: "virtiofs"
 mounts:
 - location: "~"
   writable: true
@@ -39,9 +47,6 @@ provision:
     command -v docker >/dev/null 2>&1 && exit 0
     export DEBIAN_FRONTEND=noninteractive
     curl -fsSL https://get.docker.com | sh
-    # install binfmt
-    apt install qemu binfmt-support qemu-user-static
-    # docker run --privileged --rm tonistiigi/binfmt --install all
 - mode: system
   script: |
     # hack to make ssh port forward able to access docker
