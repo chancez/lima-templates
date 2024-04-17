@@ -52,6 +52,15 @@ provision:
     sysctl fs.inotify.max_user_watches=655360
 - mode: system
   script: |
+    #!/bin/sh
+    set -e
+
+    # needed for cilium
+    mount bpffs -t bpf /sys/fs/bpf
+    mount --make-shared /sys/fs/bpf
+    mount --make-shared /sys/fs/cgroup
+- mode: system
+  script: |
     # for kitty terminal
     echo 'Defaults env_keep += "TERM TERMINFO"' > /etc/sudoers.d/preserve-terminfo
 - mode: system
