@@ -81,7 +81,7 @@ provision:
     apt-get install -y kubectl helm
 
     # install KIND
-    curl -Lo ./kind https://kind.sigs.k8s.io/dl/v0.14.0/kind-linux-$(dpkg --print-architecture)
+    curl -fsSLo ./kind https://kind.sigs.k8s.io/dl/v0.14.0/kind-linux-$(dpkg --print-architecture)
     chmod +x ./kind
     mv ./kind /usr/local/bin/kind
 
