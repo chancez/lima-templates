@@ -39,7 +39,6 @@ provision:
   script: |
     #!/bin/sh
     sed -i 's/host.lima.internal.*/host.lima.internal host.docker.internal/' /etc/hosts
-    grep -qxF '127.0.0.1 lima-docker' /etc/hosts || echo '127.0.0.1 lima-docker' >> /etc/hosts
 - mode: system
   script: |
     #!/bin/bash
@@ -106,7 +105,7 @@ provision:
     wget https://go.dev/dl/go1.21.4.linux-arm64.tar.gz
     rm -rf /usr/local/go && tar -C /usr/local -xzf go1.21.4.linux-arm64.tar.gz
 
-    echo 'export PATH=$PATH:/usr/local/go/bin' >> /home/chancezibolski.linux/.bashrc
+    echo 'export PATH=/usr/local/go/bin:$PATH' >> {{.Home}}/.bashrc
 
     export PATH=$PATH:/usr/local/go/bin
     go install github.com/mattn/goveralls@a36c7ef8f23b2952fa6e39663f52107dfc8ad69d
