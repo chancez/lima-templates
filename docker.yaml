@@ -20,6 +20,7 @@ networks:
   - lima: shared
     macAddress: de:ad:be:ef:00:01
 
+mountInotify: true
 mountType: "virtiofs"
 mounts:
 - location: "~"
