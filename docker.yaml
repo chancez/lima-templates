@@ -63,26 +63,6 @@ provision:
     mount bpffs -t bpf /sys/fs/bpf
     mount --make-shared /sys/fs/bpf
     mount --make-shared /sys/fs/cgroup
-- mode: system
-  script: |
-    apt-get update
-    apt-get install -y apt-transport-https ca-certificates curl
-
-    # kubernetes key and repo
-    sudo curl -fsSLo /usr/share/keyrings/kubernetes-archive-keyring.gpg https://packages.cloud.google.com/apt/doc/apt-key.gpg
-    echo "deb [signed-by=/usr/share/keyrings/kubernetes-archive-keyring.gpg] https://apt.kubernetes.io/ kubernetes-xenial main" | sudo tee /etc/apt/sources.list.d/kubernetes.list
-    # helm key and report
-    curl https://baltocdn.com/helm/signing.asc | gpg --dearmor | sudo tee /usr/share/keyrings/helm.gpg > /dev/null
-    echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/helm.gpg] https://baltocdn.com/helm/stable/debian/ all main" | sudo tee /etc/apt/sources.list.d/helm-stable-debian.list
-
-    # install kubectl and helm
-    apt-get update
-    apt-get install -y kubectl helm
-
-    # install KIND
-    curl -fsSLo ./kind https://kind.sigs.k8s.io/dl/v0.14.0/kind-linux-$(dpkg --print-architecture)
-    chmod +x ./kind
-    mv ./kind /usr/local/bin/kind
 
 probes:
 - script: |
