@@ -65,10 +65,6 @@ provision:
     mount --make-shared /sys/fs/cgroup
 - mode: system
   script: |
-    # for kitty terminal
-    echo 'Defaults env_keep += "TERM TERMINFO"' > /etc/sudoers.d/preserve-terminfo
-- mode: system
-  script: |
     apt-get update
     apt-get install -y apt-transport-https ca-certificates curl
 
